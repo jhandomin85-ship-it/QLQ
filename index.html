@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Entrega de Medicamentos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .pattern-bg {
+            position: fixed;
+            inset: 0;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAtMi4yMS0xLjc5LTQtNC00cy00IDEuNzktNCA0IDEuNzkgNCA0IDQgNC0xLjc5IDQtNHptMCAwYzAtMi4yMS0xLjc5LTQtNC00cy00IDEuNzktNCA0IDEuNzkgNCA0IDQgNC0xLjc5IDQtNHoiLz48L2c+PC9nPjwvc3ZnPg==');
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.2);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            color: white;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .stat-card .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-card .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            box-shadow: 0 5px 20px rgba(238, 90, 111, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(238, 90, 111, 0.6);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66, #37b24d);
+            color: white;
+            box-shadow: 0 5px 20px rgba(55, 178, 77, 0.4);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(55, 178, 77, 0.6);
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .button-row .btn {
+            flex: 1;
+        }
+        
+        .table-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 30px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: rgba(0,0,0,0.3);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            color: white;
+        }
+        
+        th {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.3s;
+        }
+        
+        tbody tr:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .badge-hipotension { background: linear-gradient(135deg, #4dabf7, #339af0); }
+        .badge-optima { background: linear-gradient(135deg, #51cf66, #37b24d); }
+        .badge-comun { background: linear-gradient(135deg, #94d82d, #74b816); }
+        .badge-prehta { background: linear-gradient(135deg, #ffd43b, #fab005); }
+        .badge-htag1 { background: linear-gradient(135deg, #ffa94d, #ff922b); }
+        .badge-htag2 { background: linear-gradient(135deg, #ff8787, #ff6b6b); }
+        .badge-htag3 { background: linear-gradient(135deg, #ff6b6b, #fa5252); }
+        .badge-htass { background: linear-gradient(135deg, #ff922b, #fd7e14); }
+        .badge-sin { background: linear-gradient(135deg, #868e96, #495057); }
+        
+        .result-box {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .result-box h3 {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .result-item {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-item .label {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+        
+        .result-item .value {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .alert {
+            background: rgba(255,107,107,0.2);
+            border: 2px solid rgba(255,107,107,0.5);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-row {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pattern-bg"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Sistema de Entrega de Medicamentos</h1>
+            <p>Gestión inteligente para el tratamiento de enfermedades no transmisibles</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Sección de Configuración Inicial -->
+            <div id="config-section" class="section active">
+                <h2 style="color: white; margin-bottom: 30px; text-align: center; font-size: 2rem;">⚙️ Configuración Inicial</h2>
+                
+                <div class="input-row">
+                    <div class="form-group">
+                        <label>💊 Existencias Medicamento 1 (Hipertensión)</label>
+                        <input type="number" id="med1-input" placeholder="Ej: 100" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>💊 Existencias Medicamento 2 (Hipotensión)</label>
+                        <input type="number" id="med2-input" placeholder="Ej: 50" min="0">
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="iniciarSistema()">🚀 Iniciar Sistema</button>
+                </div>
+            </div>
+            
+            <!-- Sección Principal del Sistema -->
+            <div id="main-section" class="section">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="icon">👥</div>
+                        <div class="number" id="stat-atendidos">0</div>
+                        <div class="label">Pacientes Atendidos</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="icon">💊</div>
+                        <div class="number" id="stat-med1">0</div>
+                        <div class="label">Stock Medicamento 1</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="icon">💊</div>
+                        <div class="number" id="stat-med2">0</div>
+                        <div class="label">Stock Medicamento 2</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="icon">📊</div>
+                        <div class="number" id="stat-entregas">0</div>
+                        <div class="label">Entregas Realizadas</div>
+                    </div>
+                </div>
+                
+                <!-- Formulario de Paciente -->
+                <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 30px; border: 2px solid rgba(255,255,255,0.2);">
+                    <h3 style="color: white; margin-bottom: 25px; font-size: 1.5rem;">📋 Registrar Nuevo Paciente</h3>
+                    
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label>🩺 Presión Sistólica</label>
+                            <input type="number" id="sistolica-input" placeholder="Ej: 120" min="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>🩺 Presión Diastólica</label>
+                            <input type="number" id="diastolica-input" placeholder="Ej: 80" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="button-row">
+                        <button class="btn btn-primary" onclick="procesarPaciente()">✓ Procesar Paciente</button>
+                        <button class="btn btn-secondary" onclick="finalizarSistema()">⏹ Finalizar</button>
+                    </div>
+                </div>
+                
+                <!-- Tabla de Pacientes -->
+                <div class="table-container" id="tabla-container" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Sistólica</th>
+                                <th>Diastólica</th>
+                                <th>Categoría</th>
+                                <th>Medicamento</th>
+                                <th>Dosis</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Sección de Reporte Final -->
+            <div id="report-section" class="section">
+                <div class="result-box">
+                    <h3>📊 Reporte Final del Sistema</h3>
+                    
+                    <div class="result-item">
+                        <div class="label">Total de Pacientes Atendidos</div>
+                        <div class="value" id="final-atendidos">0</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="label">Pacientes con Medicamento 1</div>
+                        <div class="value" id="final-med1">0 (0.00%)</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="label">Pacientes con Medicamento 2</div>
+                        <div class="value" id="final-med2">0 (0.00%)</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button class="btn btn-success" onclick="reiniciarSistema()">🔄 Reiniciar Sistema</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let existenciasMed1 = 0;
+        let existenciasMed2 = 0;
+        let pacientesAtendidos = 0;
+        let pacientesMed1 = 0;
+        let pacientesMed2 = 0;
+        let pacientes = [];
+        
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+        
+        function iniciarSistema() {
+            const med1 = parseInt(document.getElementById('med1-input').value);
+            const med2 = parseInt(document.getElementById('med2-input').value);
+            
+            if (isNaN(med1) || isNaN(med2) || med1 < 0 || med2 < 0) {
+                alert('Por favor ingrese valores válidos para las existencias');
+                return;
+            }
+            
+            existenciasMed1 = med1;
+            existenciasMed2 = med2;
+            actualizarStats();
+            showSection('main-section');
+        }
+        
+        function clasificarPaciente(sistolica, diastolica) {
+            if (sistolica < 69 && diastolica < 48) {
+                return { categoria: 'Hipotension', medicamento: 2, dosis: 6, clase: 'badge-hipotension' };
+            }
+            if (sistolica >= 69 && sistolica < 98 && diastolica >= 48 && diastolica < 66) {
+                return { categoria: 'Optima', medicamento: 0, dosis: 0, clase: 'badge-optima' };
+            }
+            if (sistolica >= 98 && sistolica < 143 && diastolica >= 66 && diastolica < 92) {
+                return { categoria: 'Comun', medicamento: 0, dosis: 0, clase: 'badge-comun' };
+            }
+            if (sistolica >= 143 && sistolica < 177 && diastolica >= 92 && diastolica < 124) {
+                return { categoria: 'Pre HTA', medicamento: 1, dosis: 6, clase: 'badge-prehta' };
+            }
+            if (sistolica >= 177 && sistolica < 198 && diastolica >= 124 && diastolica < 142) {
+                return { categoria: 'HTAG1', medicamento: 1, dosis: 10, clase: 'badge-htag1' };
+            }
+            if (sistolica >= 198 && sistolica < 246 && diastolica >= 142 && diastolica < 169) {
+                return { categoria: 'HTAG2', medicamento: 1, dosis: 18, clase: 'badge-htag2' };
+            }
+            if (sistolica >= 246 && diastolica >= 169) {
+                return { categoria: 'HTAG3', medicamento: 1, dosis: 35, clase: 'badge-htag3' };
+            }
+            if (sistolica >= 162 && diastolica < 86) {
+                return { categoria: 'HTASS', medicamento: 1, dosis: 17, clase: 'badge-htass' };
+            }
+            return { categoria: 'Sin categoria', medicamento: 0, dosis: 0, clase: 'badge-sin' };
+        }
+        
+        function procesarPaciente() {
+            const sistolica = parseInt(document.getElementById('sistolica-input').value);
+            const diastolica = parseInt(document.getElementById('diastolica-input').value);
+            
+            if (isNaN(sistolica) || isNaN(diastolica)) {
+                alert('Por favor ingrese valores válidos de presión');
+                return;
+            }
+            
+            const clasificacion = clasificarPaciente(sistolica, diastolica);
+            const { medicamento, dosis, categoria, clase } = clasificacion;
+            
+            let entregado = false;
+            let razon = '';
+            
+            if (medicamento === 1) {
+                if (existenciasMed1 >= dosis) {
+                    existenciasMed1 -= dosis;
+                    pacientesMed1++;
+                    entregado = true;
+                } else {
+                    razon = 'Existencias insuficientes de Medicamento 1';
+                    alert(razon);
+                    finalizarSistema();
+                    return;
+                }
+            } else if (medicamento === 2) {
+                if (existenciasMed2 >= dosis) {
+                    existenciasMed2 -= dosis;
+                    pacientesMed2++;
+                    entregado = true;
+                } else {
+                    razon = 'Existencias insuficientes de Medicamento 2';
+                    alert(razon);
+                    finalizarSistema();
+                    return;
+                }
+            }
+            
+            pacientesAtendidos++;
+            
+            pacientes.push({
+                numero: pacientes.length + 1,
+                sistolica,
+                diastolica,
+                categoria,
+                clase,
+                medicamento,
+                dosis,
+                entregado,
+                razon
+            });
+            
+            actualizarStats();
+            actualizarTabla();
+            
+            document.getElementById('sistolica-input').value = '';
+            document.getElementById('diastolica-input').value = '';
+            document.getElementById('sistolica-input').focus();
+        }
+        
+        function actualizarStats() {
+            document.getElementById('stat-atendidos').textContent = pacientesAtendidos;
+            document.getElementById('stat-med1').textContent = existenciasMed1;
+            document.getElementById('stat-med2').textContent = existenciasMed2;
+            document.getElementById('stat-entregas').textContent = pacientesMed1 + pacientesMed2;
+        }
+        
+        function actualizarTabla() {
+            const tbody = document.getElementById('tabla-body');
+            const container = document.getElementById('tabla-container');
+            
+            if (pacientes.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            tbody.innerHTML = '';
+            
+            pacientes.forEach(p => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${p.numero}</td>
+                    <td>${p.sistolica}</td>
+                    <td>${p.diastolica}</td>
+                    <td><span class="badge ${p.clase}">${p.categoria}</span></td>
+                    <td>${p.medicamento === 0 ? 'Ninguno' : 'Med. ' + p.medicamento}</td>
+                    <td>${p.dosis}</td>
+                    <td>${p.entregado ? '✅ Entregado' : p.razon ? '❌ No entregado' : '⚪ No requiere'}</td>
+                `;
+            });
+        }
+        
+        function finalizarSistema() {
+            const porcMed1 = pacientesAtendidos > 0 ? 
+                (pacientesMed1 / pacientesAtendidos * 100).toFixed(2) : '0.00';
+            const porcMed2 = pacientesAtendidos > 0 ? 
+                (pacientesMed2 / pacientesAtendidos * 100).toFixed(2) : '0.00';
+            
+            document.getElementById('final-atendidos').textContent = pacientesAtendidos;
+            document.getElementById('final-med1').textContent = `${pacientesMed1} (${porcMed1}%)`;
+            document.getElementById('final-med2').textContent = `${pacientesMed2} (${porcMed2}%)`;
+            
+            // Mostrar en consola el formato requerido
+            console.log(`Pacientes atendidos: ${pacientesAtendidos}`);
+            console.log(`Pacientes con medicamento 1: ${pacientesMed1} (${porcMed1}%)`);
+            console.log(`Pacientes con medicamento 2: ${pacientesMed2} (${porcMed2}%)`);
+            
+            showSection('report-section');
+        }
+        
+        function reiniciarSistema() {
+            existenciasMed1 = 0;
+            existenciasMed2 = 0;
+            pacientesAtendidos = 0;
+            pacientesMed1 = 0;
+            pacientesMed2 = 0;
+            pacientes = [];
+            
+            document.getElementById('med1-input').value = '';
+            document.getElementById('med2-input').value = '';
+            document.getElementById('sistolica-input').value = '';
+            document.getElementById('diastolica-input').value = '';
+            
+            actualizarStats();
+            actualizarTabla();
+            showSection('config-section');
+        }
+        
+        // Permitir presionar Enter en los inputs
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('med2-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') iniciarSistema();
+            });
+            
+            document.getElementById('diastolica-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') procesarPaciente();
+            });
+        });
+    </script>
+</body>
+</html>
